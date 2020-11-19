@@ -88,21 +88,24 @@ def preprocess_document(doc_name, doc_type):
 
 def vector_space_model(url, filename):
   vectorizer = TfidfVectorizer()
-  if filename.endswith(".docx"):
+  text = ""
+  if filename.endswith(".docx") or filename.endswith(".doc"):
     text = read_docx_document(url)
   if filename.endswith(".pdf"):
     text = read_pdf_document(url)
-  text = read_docx_document(url)
   tokens = tokenize_words(text)
   words = check_alphanumberic_words(tokens)
   words = remove_stop_words(words)
-  stemmed = apply_stemmer(words)
-  X = vectorizer.fit_transform([" ".join(stemmed)])
-  doc_term_matrix = X.todense()
-  tf_idf_data = pd.DataFrame(doc_term_matrix, 
-                 columns=vectorizer.get_feature_names(), 
-                index=[filename])
-  return tf_idf_data.to_dict(orient='records')
+  result = [{}]
+  if(len(words) > 0):
+    stemmed = apply_stemmer(words)
+    X = vectorizer.fit_transform([" ".join(stemmed)])
+    doc_term_matrix = X.todense()
+    tf_idf_data = pd.DataFrame(doc_term_matrix, 
+                  columns=vectorizer.get_feature_names(), 
+                  index=[filename])
+    result = tf_idf_data.to_dict(orient='records')
+  return result
 # # Create the Document vector space Matrix
 # vectorizer = TfidfVectorizer()
 

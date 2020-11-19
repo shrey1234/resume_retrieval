@@ -11,6 +11,7 @@ def save_model():
   values = []
   i = 1
   for filename in os.listdir(dir):
+    print("resumes/"+filename)
     vector_model = helper.vector_space_model("resumes/"+filename, filename)
     # cluster = method for cluster assignment
     print(vector_model)
