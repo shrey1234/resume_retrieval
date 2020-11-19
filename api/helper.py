@@ -97,7 +97,7 @@ def vector_space_model(url, filename):
   words = check_alphanumberic_words(tokens)
   words = remove_stop_words(words)
   stemmed = apply_stemmer(words)
-  X = vectorizer.fit_transform([text])
+  X = vectorizer.fit_transform([" ".join(stemmed)])
   doc_term_matrix = X.todense()
   tf_idf_data = pd.DataFrame(doc_term_matrix, 
                  columns=vectorizer.get_feature_names(), 
