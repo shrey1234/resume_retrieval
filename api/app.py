@@ -1,6 +1,7 @@
 #app.py
 import json
 import sqlite as db
+import helper
 
 from flask import Flask
 app = Flask(__name__)
@@ -11,7 +12,7 @@ def hello():
 
 @app.route("/setup")
 def setup():
-  db.save_model()
+  helper.save_model()
   body = {
     "message": "Setup Successfull"
   }
@@ -21,6 +22,15 @@ def setup():
   }
   return response
 
-@app.route("/retrieve")
-def retrieve():
-  return "Hello World!"
+@app.route("/search")
+def search():
+  result = helper.get_similar_documents("accountant")
+  body = {
+    "message": "Setup Successfull",
+    "result": result
+  }
+  response = {
+    "statusCode": 200,
+    "body": json.dumps(body)
+  }
+  return response

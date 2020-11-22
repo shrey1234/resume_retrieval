@@ -11,9 +11,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import requests
 import docx2txt
 from io import BytesIO
+import os
+import sqlite as db
+import pickle
+import json
 
-corpus = []
-index_arr = []
 
 #Helper function to read document from disk and return the text
 def read_docx_document(filepath):
@@ -43,7 +45,6 @@ def remove_stop_words(word_tokens):
     stop_words = set(stopwords.words('english')) 
     filtered_words = [w for w in word_tokens if not w in stop_words] 
     filtered_words = [] 
-  
     for w in word_tokens: 
         if w not in stop_words: 
             filtered_words.append(w) 
@@ -69,57 +70,69 @@ def plot_frequency_distribution(stemmed_words):
     freq = nltk.FreqDist(clean_tokens)
     freq.plot(20, cumulative=False)
 
-def add_documents(stemmed, document_name):
-    index_arr.append(document_name)
-    corpus.append(" ".join(stemmed))
-
-def preprocess_document(doc_name, doc_type):
-    file_path = "Resume/" + doc_name
-    if (doc_type == "docx"):
-        text = read_docx_document(file_path)
-    if (doc_type == "pdf"):
-        text = read_pdf_document(file_path)
+def preprocess_document(doc_name):
+    print(doc_name)  
+    file_path = "resumes/" + doc_name
+    text = ""
+    if doc_name.endswith(".docx"):
+      text = read_docx_document(file_path)
+    # if doc_name.endswith(".pdf"):
+    #   text = read_pdf_document(file_path)
     tokens = tokenize_words(text)
     words = check_alphanumberic_words(tokens)
     words = remove_stop_words(words)
-    stemmed = apply_stemmer(words)
-    add_documents(stemmed, doc_name)
+    stemmed = {}
+    if(len(words) > 0):
+      stemmed = apply_stemmer(words)
     return stemmed
 
-def vector_space_model(url, filename):
-  vectorizer = TfidfVectorizer()
-  text = ""
-  if filename.endswith(".docx") or filename.endswith(".doc"):
-    text = read_docx_document(url)
-  if filename.endswith(".pdf"):
-    text = read_pdf_document(url)
-  tokens = tokenize_words(text)
+def create_tf_idf_vector():
+  return TfidfVectorizer()
+
+def save_vectorizer_model(vectorizer):
+  with open('resume_vectorizer.pk', 'wb') as fin:
+      pickle.dump(vectorizer, fin)
+  return True
+
+def save_model():
+  corpus = []
+  corpus_name = []
+  vectorizer = create_tf_idf_vector()
+  for filename in os.listdir("resumes"):
+    if filename.endswith(".docx"):
+      stemmed = preprocess_document(filename)
+      corpus_name.append(filename)
+      corpus.append(" ".join(stemmed))
+  X = vectorizer.fit_transform(corpus)
+  doc_term_matrix = X.todense()
+  tf_idf_data = pd.DataFrame(doc_term_matrix, 
+                  columns=vectorizer.get_feature_names(), 
+                  index=corpus_name)
+  result = tf_idf_data.to_dict(orient='records')
+  db.save_in_db(result, corpus_name)
+  return save_vectorizer_model(vectorizer)
+
+def get_similar_documents(query):
+  vectorizer_new = pickle.load(open("resume_vectorizer.pk", "rb"))
+  tokens = tokenize_words(query)
   words = check_alphanumberic_words(tokens)
   words = remove_stop_words(words)
-  result = [{}]
-  if(len(words) > 0):
-    stemmed = apply_stemmer(words)
-    X = vectorizer.fit_transform([" ".join(stemmed)])
-    doc_term_matrix = X.todense()
-    tf_idf_data = pd.DataFrame(doc_term_matrix, 
-                  columns=vectorizer.get_feature_names(), 
-                  index=[filename])
-    result = tf_idf_data.to_dict(orient='records')
-  return result
-# # Create the Document vector space Matrix
-# vectorizer = TfidfVectorizer()
-
-# #Sample query
-# text = read_docx_document("Job Description/CDL - EVP Head of Asset Mgt.docx")
-# tokens = tokenize_words(text)
-# words = check_alphanumberic_words(tokens)
-# words = remove_stop_words(words)
-# stemmed = apply_stemmer(words)
-# add_documents(stemmed, "Query")
-
-# X = vectorizer.fit_transform(corpus)
-# print(X.shape)
-# doc_term_matrix = X.todense()
-# tf_idf_data = pd.DataFrame(doc_term_matrix, 
-#                  columns=vectorizer.get_feature_names(), 
-#                 index=index_arr)
+  stemmed = apply_stemmer(words)
+  query_features = vectorizer_new.transform([" ".join(stemmed)])
+  doc_term_matrix_query = query_features.todense()
+  tf_idf_data_query = pd.DataFrame(doc_term_matrix_query, 
+                 columns=vectorizer_new.get_feature_names(), 
+                index=["Query"])
+  records = db.get_all_records()
+  vector_arr = []
+  for record in records:
+    vector_arr.append(json.loads(record[3]))
+  b = pd.DataFrame.from_records(vector_arr)
+  similarity_test = cosine_similarity(tf_idf_data_query[0:1], b)
+  matched_documents = []
+  index = 0
+  for document in similarity_test[0]:
+      if document > 0.1:
+          matched_documents.append({'name': records[index][1], 'url': records[index][2]})
+          index += 1
+  return matched_documents

@@ -1,23 +1,29 @@
 import sqlite3
-import os
-import helper 
 import json
 
-# CREATE TABLE resumes (id integer PRIMARY KEY, resume_name text NOT NULL, url text NOT NULL, vector_model json, cluster text );
+def create_table(conn):
+  conn.execute('DROP TABLE resumes;')
+  conn.execute('CREATE TABLE IF NOT EXISTS resumes (id integer PRIMARY KEY, resume_name text NOT NULL, url text NOT NULL, vector_model json, cluster text );')
+  return True
 
-def save_model():
+def save_in_db(result, corpus_name):
   conn = sqlite3.connect('ResumeRetrieval.db')
-  dir = "resumes"
+  create_table(conn)
   values = []
   i = 1
-  for filename in os.listdir(dir):
-    print("resumes/"+filename)
-    vector_model = helper.vector_space_model("resumes/"+filename, filename)
-    # cluster = method for cluster assignment
-    print(vector_model)
-    values.append((i, filename, "resumes/"+filename, json.dumps(vector_model[0])))
+  for value in result:
+    values.append((i, corpus_name[i-1], "resumes/"+corpus_name[i-1], json.dumps(value)))
     i += 1
+  print("Executing query")
   result = conn.executemany('INSERT INTO resumes (id, resume_name, url, vector_model) VALUES (?,?,?,?)', values)
   conn.commit()
   conn.close()
   return "Successfully inserted"
+
+
+def get_all_records():
+  conn = sqlite3.connect('ResumeRetrieval.db')
+  cursor = conn.cursor()
+  cursor.execute('SELECT * FROM resumes;')
+  result = cursor.fetchall()
+  return result

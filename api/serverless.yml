@@ -30,5 +30,5 @@ functions:
     handler: wsgi.handler
     events:
       - http:
-        path: /retrieve
+        path: /search
         method: get
