@@ -15,6 +15,10 @@ import os
 import sqlite as db
 import pickle
 import json
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import seaborn as sns; sns.set() 
+from sklearn.datasets.samples_generator import make_blobs
 
 
 #Helper function to read document from disk and return the text
@@ -97,6 +101,8 @@ def save_vectorizer_model(vectorizer):
 def save_model():
   corpus = []
   corpus_name = []
+  cluster= []
+
   vectorizer = create_tf_idf_vector()
   for filename in os.listdir("resumes"):
     if filename.endswith(".docx"):
@@ -108,8 +114,13 @@ def save_model():
   tf_idf_data = pd.DataFrame(doc_term_matrix, 
                   columns=vectorizer.get_feature_names(), 
                   index=corpus_name)
+
+  #saving cluster into db
+  kmean=KMeans(n_clusters=3)
+  kmean.fit(tf_idf_data)
+  cluster=kmean.labels_
   result = tf_idf_data.to_dict(orient='records')
-  db.save_in_db(result, corpus_name)
+  db.save_in_db(result, corpus_name,cluster)
   return save_vectorizer_model(vectorizer)
 
 def get_similar_documents(query):
