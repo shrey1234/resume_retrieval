@@ -22,15 +22,10 @@ def setup():
   }
   return response
 
-@app.route("/search")
+@app.route("/search",methods = ['POST', 'GET'])
 def search():
-  result = helper.get_similar_documents("accountant")
-  body = {
-    "message": "Setup Successfull",
-    "result": result
-  }
-  response = {
-    "statusCode": 200,
-    "body": json.dumps(body)
-  }
-  return response
+  search_st = request.form.get('searched')
+  print(search_st)
+  result = helper.get_similar_documents(search_st)
+  print(result)
+  return render_template('result.html', results = result) 
