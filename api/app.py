@@ -6,9 +6,9 @@ import helper
 from flask import Flask
 app = Flask(__name__)
 
-@app.route("/")
-def hello():
-    return "Welcome to application"
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 @app.route("/setup")
 def setup():
