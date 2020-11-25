@@ -141,9 +141,9 @@ def get_similar_documents(query):
   b = pd.DataFrame.from_records(vector_arr)
   similarity_test = cosine_similarity(tf_idf_data_query[0:1], b)
   matched_documents = []
-  index = 0
-  for document in similarity_test[0]:
-      if document > 0.1:
-          matched_documents.append({'name': records[index][1], 'url': records[index][2]})
-          index += 1
+  sort_index = np.argsort(similarity_test[0])
+  #Top 5 resumes with similarity index greater than 0.1
+  for index in sort_index[::-1][:5]:
+    if similarity_test[0][index] > 0.1:
+      matched_documents.append({'name': records[index][1], 'url': records[index][2]})
   return matched_documents
