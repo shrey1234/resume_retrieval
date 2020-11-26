@@ -137,7 +137,7 @@ def get_similar_documents(query):
   records = db.get_all_records()
   vector_arr = []
   for record in records:
-    vector_arr.append(json.loads(record[4]))
+    vector_arr.append(json.loads(record[3]))
   b = pd.DataFrame.from_records(vector_arr)
   similarity_test = cosine_similarity(tf_idf_data_query[0:1], b)
   matched_documents = []
