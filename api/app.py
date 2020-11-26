@@ -32,3 +32,10 @@ def search():
   result = helper.get_similar_documents(search_st)
   print(result)
   return render_template('result.html', results = result) 
+
+@app.route("/similar",methods = ['GET'])
+def similar():
+  doc_name = request.args.get('doc')
+  result = helper.get_documents_from_same_cluster(doc_name)
+  print(result)
+  return render_template('result.html', results = result) 

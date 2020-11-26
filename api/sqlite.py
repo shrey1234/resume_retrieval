@@ -29,3 +29,25 @@ def get_all_records():
   cursor.execute('SELECT * FROM resumes;')
   result = cursor.fetchall()
   return result
+
+def get_cluster_number(doc_name):
+  conn = sqlite3.connect('ResumeRetrieval.db')
+  cursor = conn.cursor()
+  cursor.execute('SELECT * FROM resumes WHERE resume_name=?;',(doc_name,))
+  result = cursor.fetchone()
+  return result[1]
+
+def get_docs_with_same_cluster(cluster_id):
+  conn = sqlite3.connect('ResumeRetrieval.db')
+  cursor = conn.cursor()
+  rows = cursor.execute('SELECT * FROM resumes WHERE cluster=?;',(cluster_id,))
+  matched_documents = []
+
+  for row in rows:
+     matched_documents.append({'name': row[2], 'url': row[3]})
+  
+  return matched_documents
+
+
+
+

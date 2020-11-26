@@ -116,7 +116,7 @@ def save_model():
                   index=corpus_name)
 
   #saving cluster into db
-  kmean=KMeans(n_clusters=3)
+  kmean=KMeans(n_clusters=6)
   kmean.fit(tf_idf_data)
   cluster=kmean.labels_
   result = tf_idf_data.to_dict(orient='records')
@@ -137,13 +137,21 @@ def get_similar_documents(query):
   records = db.get_all_records()
   vector_arr = []
   for record in records:
-    vector_arr.append(json.loads(record[3]))
+    vector_arr.append(json.loads(record[4]))
   b = pd.DataFrame.from_records(vector_arr)
   similarity_test = cosine_similarity(tf_idf_data_query[0:1], b)
   matched_documents = []
   index = 0
   for document in similarity_test[0]:
       if document > 0.1:
-          matched_documents.append({'name': records[index][1], 'url': records[index][2]})
+          matched_documents.append({'name': records[index][2], 'url': records[index][3]})
           index += 1
   return matched_documents
+
+
+def get_documents_from_same_cluster(doc_name):
+  print("doc name for similar call: {}".format(doc_name))
+  cluster_id = db.get_cluster_number(doc_name)
+  print("cluster number of input doc: {{cluster_id}}")
+  docs = db.get_docs_with_same_cluster(cluster_id)
+  return docs

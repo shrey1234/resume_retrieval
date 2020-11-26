@@ -18,6 +18,7 @@
                   <tr>
                   <th>Name</th>
                   <th>Url</th>
+                  <th>Action</th>
                   </tr>
                 </thead>
                 {% for r in results :%}
@@ -25,6 +26,12 @@
                       <tr>
                       <td>{{r.name}}</td>
                       <td>{{r.url}}</a></td>
+                      <td>
+                        <form action="/similar" method="GET">
+                          <input type="hidden" name= "doc" value= "{{r.name}}" /> 
+                          <input type="submit" value='Find Similar' /> 
+                        </form>
+                      </td>
                   
                       </tr>
                   </tbody>
