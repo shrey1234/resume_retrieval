@@ -26,7 +26,7 @@ def save_in_db(result, corpus_name,cluster):
 def get_all_records():
   conn = sqlite3.connect('ResumeRetrieval.db')
   cursor = conn.cursor()
-  cursor.execute('SELECT * FROM resumes;')
+  cursor.execute('SELECT id, resume_name, url, vector_model, cluster FROM resumes;')
   result = cursor.fetchall()
   return result
 
