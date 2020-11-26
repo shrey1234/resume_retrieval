@@ -38,4 +38,10 @@ def similar():
   doc_name = request.args.get('doc')
   result = helper.get_documents_from_same_cluster(doc_name)
   print(result)
-  return render_template('result.html', results = result) 
+  return render_template('similar.html', results = result) 
+
+@app.route('/<path:filename>')
+def custom_static(filename):
+    return send_from_directory('./resumes', filename)
+
+    

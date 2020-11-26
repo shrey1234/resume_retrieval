@@ -14,7 +14,7 @@ def save_in_db(result, corpus_name,cluster):
   values = []
   i = 1
   for value in result:
-    values.append((i,cluster[i-1],corpus_name[i-1], "resumes/"+corpus_name[i-1], json.dumps(value)))
+    values.append((i,cluster[i-1],corpus_name[i-1], corpus_name[i-1], json.dumps(value)))
     i += 1
   print("Executing query")
   result = conn.executemany('INSERT INTO resumes (id,cluster,resume_name, url,vector_model) VALUES (?,?,?,?,?)', values)
