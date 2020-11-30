@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html class="gr__getpapercss_com">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+<title>Resume retrieval</title>
+  
+</head>
+
+<body data-gr-c-s-loaded="true">
+  <div id="top" class="row site">
+    <div class="sm-12 md-8 col">
+      <div class="paper">
+        <div class="section">
+          	
+              <table class="table-hover">
+                <thead>
+                  <tr>
+                  <th>Name</th>
+                  <th>Url</th>
+                  </tr>
+                </thead>
+                {% for r in results :%}
+                  <tbody>
+                      <tr>
+                      <td>{{r.name}}</td>
+                      <td><a href="{{url_for('custom_static', filename=r.url)}}">{{r.url}}</a></td>
+                      </tr>
+                  </tbody>
+                {% endfor %}
+
+              </table>
+      <br>
+          <form action="/" method="GET" style="text-align:center">
+            <button type="submit">Do it again</button>
+          </form>
+	    </div>  
+      </div>
+    </div>
+</div>
+</body></html>
