@@ -20,6 +20,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns; sns.set() 
 from sklearn.datasets.samples_generator import make_blobs
 
+records = db.get_all_records()
+vector_arr = []
+for record in records:
+  vector_arr.append(json.loads(record[3]))
+datarecords = pd.DataFrame.from_records(vector_arr)
 
 #Helper function to read document from disk and return the text
 def read_docx_document(filepath):
@@ -80,8 +85,8 @@ def preprocess_document(doc_name):
     text = ""
     if doc_name.endswith(".docx"):
       text = read_docx_document(file_path)
-    # if doc_name.endswith(".pdf"):
-    #   text = read_pdf_document(file_path)
+    if doc_name.endswith(".pdf"):
+      text = read_pdf_document(file_path)
     tokens = tokenize_words(text)
     words = check_alphanumberic_words(tokens)
     words = remove_stop_words(words)
@@ -105,10 +110,9 @@ def save_model():
 
   vectorizer = create_tf_idf_vector()
   for filename in os.listdir("resumes"):
-    if filename.endswith(".docx"):
-      stemmed = preprocess_document(filename)
-      corpus_name.append(filename)
-      corpus.append(" ".join(stemmed))
+    stemmed = preprocess_document(filename)
+    corpus_name.append(filename)
+    corpus.append(" ".join(stemmed))
   X = vectorizer.fit_transform(corpus)
   doc_term_matrix = X.todense()
   tf_idf_data = pd.DataFrame(doc_term_matrix, 
@@ -134,12 +138,7 @@ def get_similar_documents(query):
   tf_idf_data_query = pd.DataFrame(doc_term_matrix_query, 
                  columns=vectorizer_new.get_feature_names(), 
                 index=["Query"])
-  records = db.get_all_records()
-  vector_arr = []
-  for record in records:
-    vector_arr.append(json.loads(record[3]))
-  b = pd.DataFrame.from_records(vector_arr)
-  similarity_test = cosine_similarity(tf_idf_data_query[0:1], b)
+  similarity_test = cosine_similarity(tf_idf_data_query[0:1], datarecords)
   matched_documents = []
   sort_index = np.argsort(similarity_test[0])
   #Top 5 resumes with similarity index greater than 0.1

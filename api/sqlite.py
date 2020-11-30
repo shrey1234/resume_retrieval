@@ -5,6 +5,7 @@ import numpy as np
 def create_table(conn):
   conn.execute('DROP TABLE resumes;')
   conn.execute('CREATE TABLE IF NOT EXISTS resumes (id integer PRIMARY KEY, cluster integer, resume_name text NOT NULL, url text NOT NULL, vector_model json );')
+  conn.commit()
   return True
 
 def save_in_db(result, corpus_name,cluster):
@@ -19,9 +20,9 @@ def save_in_db(result, corpus_name,cluster):
   print("Executing query")
   result = conn.executemany('INSERT INTO resumes (id,cluster,resume_name, url,vector_model) VALUES (?,?,?,?,?)', values)
   conn.commit()
+  save_csv()
   conn.close()
   return "Successfully inserted"
-
 
 def get_all_records():
   conn = sqlite3.connect('ResumeRetrieval.db')
@@ -48,6 +49,12 @@ def get_docs_with_same_cluster(cluster_id):
   
   return matched_documents
 
-
+def save_csv():
+  records = db.get_all_records()
+  vector_arr = []
+  for record in records:
+    vector_arr.append(json.loads(record[3]))
+  datarecords = pd.DataFrame.from_records(vector_arr)
+  datarecords.to_csv("resume_tfidf.csv", index=False)
 
 
